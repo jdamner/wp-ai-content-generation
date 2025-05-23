@@ -1,0 +1,29 @@
+version: 2
+updates:
+    # PHP Deps
+    - package-ecosystem: composer
+      directory: "/"
+      registries: "*"
+      schedule:
+          interval: daily
+    
+    # NodeJS Deps
+    - package-ecosystem: npm
+      directory: "/"
+      registries: "*"
+      schedule:
+          interval: daily
+      ignore:
+      # Ignore updates to the WordPress packages, we'll handle those manually.
+        - dependency-name: "@wordpress/*"
+        - dependency-name: "react"
+        - dependency-name: "react-dom"
+
+    # Github Actions
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: daily
+      open-pull-requests-limit: 10
+      commit-message:
+          prefix: "[DEPS][GHA]"

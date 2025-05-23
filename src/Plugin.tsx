@@ -1,30 +1,22 @@
-import { Panel, PanelBody, Button, Modal } from '@wordpress/components';
-import { PluginSidebar } from '@wordpress/editor';
+import { Button, Modal } from '@wordpress/components';
+import { PluginPostStatusInfo } from '@wordpress/editor';
 import { ReactComponent as Icon } from './icon.svg';
 import { useState } from 'react';
+import { ModalContent } from './ModalContent';
 
 export const Plugin: React.FC = () => {
-	// @todo - change the default state to false, this is just for testing
-	const [ isOpen, setIsOpen ] = useState( true );
+	const [ isOpen, setIsOpen ] = useState( false );
 	const toggleOpen = () => {
 		setIsOpen( ! isOpen );
 	};
 
 	return (
 		<>
-			<PluginSidebar
-				icon={ Icon }
-				name="wp-ai-content-generation"
-				title="AI Content Generation"
-			>
-				<Panel>
-					<PanelBody>
-						<Button onClick={ toggleOpen } variant="primary">
-							{ isOpen ? 'Close' : 'Open' } Panel
-						</Button>
-					</PanelBody>
-				</Panel>
-			</PluginSidebar>
+			<PluginPostStatusInfo>
+				<Button onClick={ toggleOpen } variant="primary" icon={ Icon }>
+					Generate Content
+				</Button>
+			</PluginPostStatusInfo>
 			{ isOpen && (
 				<Modal
 					size="fill"
@@ -32,7 +24,7 @@ export const Plugin: React.FC = () => {
 					title="AI Content Generation"
 					icon={ <Icon /> }
 				>
-					Hello World!
+					<ModalContent closeModal={ toggleOpen } />
 				</Modal>
 			) }
 		</>

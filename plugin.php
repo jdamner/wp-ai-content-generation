@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name:       WordPress AI Content Generation
  * Version:           0.1.0
@@ -9,36 +8,24 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       wp-ai-content-generation
+ * 
+ * @package BoxUk\WpAiContentGeneration
  */
 
-namespace JdAmner\WpAiContentGeneration;
+namespace BoxUk\WpAiContentGeneration;
 
-if (! defined('ABSPATH')) {
-    exit; // Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
+require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 
-function enqueue_assets() {
-    $asset = include_once plugin_dir_path(__FILE__) . 'build/index.asset.php';
-    if (! $asset) {
-        return;
-    }
+$dotenv = \Dotenv\Dotenv::createImmutable( __DIR__ );
+$dotenv->load();
 
-    wp_enqueue_style(
-        'list-icons-style',
-        plugins_url('build/index.css', __FILE__),
-        [],
-        $asset['version'],
-        'all'
-    );
+require_once plugin_dir_path( __FILE__ ) . 'includes/api.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/assets.php';
 
-    wp_enqueue_script(
-        'list-icons-script',
-        plugins_url('build/index.js', __FILE__),
-        $asset['dependencies'],
-        $asset['version'],
-        true
-    );
-}
-
+// Initialise on relevant hooks.
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_assets' );
+add_action( 'rest_api_init', __NAMESPACE__ . '\\register_api_routes' );
