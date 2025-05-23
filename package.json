@@ -1,12 +1,12 @@
 {
-  "name": "wp-ai-content-generation",
-  "version": "1.0.0",
-  "description": "This proof of concept aims to provide a method for users to have rich, block-based content generation from an AI by providing the relevant structure and framework to provide the data needed for both the AI to select a component to use, and the correct format for WP to parse the content and generate the blocks in the editor as needed.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/boxuk/wp-ai-content-generation.git"
-  },
-  "scripts": {
+	"name": "wp-ai-content-generation",
+	"version": "1.0.0",
+	"description": "This proof of concept aims to provide a method for users to have rich, block-based content generation from an AI by providing the relevant structure and framework to provide the data needed for both the AI to select a component to use, and the correct format for WP to parse the content and generate the blocks in the editor as needed.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/boxuk/wp-ai-content-generation.git"
+	},
+	"scripts": {
 		"build": "wp-scripts build",
 		"format": "wp-scripts format",
 		"lint": "npm run lint:css && npm run lint:js",
@@ -24,17 +24,20 @@
 		"@wordpress/blocks": "^14.12.0",
 		"@wordpress/components": "^29.9.0",
 		"@wordpress/compose": "^7.23.0",
+		"@wordpress/editor": "^14.24.0",
 		"@wordpress/env": "^10.23.0",
 		"@wordpress/hooks": "^4.23.0",
+		"@wordpress/icons": "^10.24.0",
+		"@wordpress/plugins": "^7.24.0",
 		"@wordpress/scripts": "^30.16.0"
 	},
 	"dependencies": {
 		"react": "^18.3.1"
 	},
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/boxuk/wp-ai-content-generation/issues"
-  },
-  "homepage": "https://github.com/boxuk/wp-ai-content-generation#readme"
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/boxuk/wp-ai-content-generation/issues"
+	},
+	"homepage": "https://github.com/boxuk/wp-ai-content-generation#readme"
 }
