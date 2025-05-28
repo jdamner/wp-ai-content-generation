@@ -20,8 +20,12 @@
 	<exclude-pattern>/build</exclude-pattern>
 	<exclude-pattern>/node_modules</exclude-pattern>
 	
-	<rule ref="WordPress-VIP-Go" />
+	<rule ref="WordPress-VIP-Go">
+		<exclude name="WordPressVIPMinimum.JS" />
+		<exclude name="Generic.Functions.CallTimePassByReference" />
+	</rule>
 	<rule ref="WordPress-Docs" />
 	<rule ref="WordPress-Extra" />
+
 	<rule ref="Generic.Files.EndFileNewline" />
 </ruleset>

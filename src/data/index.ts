@@ -1,33 +1,19 @@
-import { parse } from './parser';
-import { sendToAi } from './ai-request';
-import { select } from '@wordpress/data';
-import { store as blocksStore } from '@wordpress/blocks';
+import type { AiHandler, AIResponse } from './types';
+import apiFetch from '@wordpress/api-fetch';
 
-export const request = async ( prompt: string ) => {
-	const components = select( blocksStore.name ).getBlockTypes();
-	const response = await sendToAi( {
-		prompt,
-		components: components.map(
-			( {
-				name,
-				attributes,
-				example,
-				description,
-				keywords,
-				category,
-			} ) => ( {
-				name,
-				attributes,
-				example,
-				description,
-				keywords,
-				category,
-			} )
-		),
+export const post: AiHandler = async ( request ) => {
+	const response = await apiFetch< AIResponse >( {
+		path: 'wp-ai-content-generation/v1/generate',
+		method: 'POST',
+		data: request,
 	} );
-	if ( response.error ) {
-		throw new Error( response.message );
-	}
+	return response;
+};
 
-	return response.components.map( parse );
+export const get = async ( id: string ): Promise< AIResponse > => {
+	const response = await apiFetch< AIResponse >( {
+		path: `wp-ai-content-generation/v1/generate/${ id }`,
+		method: 'GET',
+	} );
+	return response;
 };

@@ -5,43 +5,96 @@ import {
 	Notice,
 	Flex,
 } from '@wordpress/components';
-import { useState } from 'react';
-import { request } from './data';
-import { type BlockInstance, getBlockContent } from '@wordpress/blocks';
+import { useEffect, useState } from 'react';
+import { getBlockContent } from '@wordpress/blocks';
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { useDispatch } from '@wordpress/data';
+import { get, post } from './data';
+import { parse } from './data/parser';
+import { AIResponse } from './data/types';
 
 export const ModalContent: React.FC< { closeModal: () => void } > = ( {
 	closeModal,
 } ) => {
-	const [ blocks, setBlocks ] = useState< BlockInstance[] >( [] );
 	const [ prompt, setPrompt ] = useState( '' );
-	const [ error, setError ] = useState< string | null >( null );
+	const [ response, setResponse ] = useState< AIResponse | null >( null );
 	const [ isLoading, setIsLoading ] = useState( false );
 
 	const handleGenerate = async () => {
 		setIsLoading( true );
-		setError( null );
-		try {
-			setBlocks( await request( prompt ) );
-		} catch ( thrown ) {
-			setBlocks( [] );
-			setError( ( thrown as Error ).message );
+		setResponse( await post( { prompt } ) );
+		setIsLoading( false );
+	};
+
+	const handleStatusCheck = async () => {
+		setIsLoading( true );
+		if ( response?.id ) {
+			try {
+				const updatedResponse = await get( response.id );
+				setResponse( updatedResponse );
+			} catch ( error ) {
+				setResponse( {
+					status: 'error',
+					message:
+						error instanceof Error
+							? error.message
+							: 'An error occurred',
+				} );
+			}
 		}
 		setIsLoading( false );
 	};
 
+	useEffect( () => {
+		if (
+			response?.id &&
+			response.status !== 'complete' &&
+			response.status !== 'error'
+		) {
+			const interval = setInterval( handleStatusCheck, 2000 );
+			return () => clearInterval( interval );
+		}
+	}, [ response ] );
+
 	const dispatch = useDispatch( blockEditorStore );
+
+	const blocks =
+		response?.status === 'complete' &&
+		response.components &&
+		Array.isArray( response.components )
+			? response.components.map( parse )
+			: [];
 
 	const populateEditor = () => {
 		dispatch.insertBlocks( blocks );
-		setBlocks( [] );
+		setResponse( null );
 		setPrompt( '' );
 		closeModal();
 	};
 
-	const logBlocks = () => {
-		console.log( 'Generated Blocks:', blocks ); // eslint-disable-line no-console
+	const showLoading =
+		isLoading ||
+		( response &&
+			response.status !== 'complete' &&
+			response.status !== 'error' );
+
+	const helpText = () => {
+		switch ( response?.status ) {
+			case 'error':
+				return <Notice status="error">{ response.message }</Notice>;
+			case 'complete':
+				return 'The AI has successfully generated content based on your request.';
+			case 'pending':
+				return 'Your request is waiting for a worker to pick it up. Please wait...';
+			case 'content_analysis_pending':
+				return 'The AI is analyzing your request...';
+			case 'intent_analysis_pending':
+				return 'The AI is analyzing the intent behind your request...';
+			case 'components_pending':
+				return 'The AI is selecting components based on your request...';
+			default:
+				return 'Enter a request to generate content using AI.';
+		}
 	};
 
 	return (
@@ -53,19 +106,7 @@ export const ModalContent: React.FC< { closeModal: () => void } > = ( {
 				placeholder="Enter your prompt here..."
 				rows={ 4 }
 				__nextHasNoMarginBottom
-				help={
-					error ? (
-						<Notice
-							status="error"
-							isDismissible
-							onRemove={ () => setError( null ) }
-						>
-							{ error }
-						</Notice>
-					) : (
-						'This is the prompt that will be sent to the AI model.'
-					)
-				}
+				help={ helpText() }
 			/>
 
 			<Flex
@@ -84,36 +125,17 @@ export const ModalContent: React.FC< { closeModal: () => void } > = ( {
 					<Button
 						variant="primary"
 						onClick={ handleGenerate }
-						disabled={
-							isLoading || blocks.length > 0 || ! prompt.trim()
-						}
+						disabled={ showLoading || ! prompt.trim() }
 					>
-						{ isLoading ? 'Generating...' : 'Generate Content' }
+						{ showLoading ? 'Generating...' : 'Generate Content' }
 					</Button>
-					{ isLoading && <Spinner /> }
+					{ showLoading && <Spinner /> }
 				</Flex>
 
 				{ blocks.length > 0 && (
-					<Flex
-						direction="row"
-						gap={ 2 }
-						justify="flex-end"
-						align="center"
-						style={ { marginTop: '1rem' } }
-					>
-						<Button variant="tertiary" onClick={ logBlocks }>
-							Log Content
-						</Button>
-						<Button
-							variant="secondary"
-							onClick={ () => setBlocks( [] ) }
-						>
-							Clear Content
-						</Button>
-						<Button variant="primary" onClick={ populateEditor }>
-							Populate Editor
-						</Button>
-					</Flex>
+					<Button variant="primary" onClick={ populateEditor }>
+						Populate Editor
+					</Button>
 				) }
 			</Flex>
 

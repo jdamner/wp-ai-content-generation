@@ -12,20 +12,22 @@
  * @package BoxUk\WpAiContentGeneration
  */
 
-namespace BoxUk\WpAiContentGeneration;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// Load Deps.
 require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
+require_once plugin_dir_path( __FILE__ ) . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-api.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-assets.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-model.php';
 
+// Load environment variables.
 $dotenv = \Dotenv\Dotenv::createImmutable( __DIR__ );
 $dotenv->load();
+$dotenv->required( 'OPENAI_API_KEY' )->notEmpty();
 
-require_once plugin_dir_path( __FILE__ ) . 'includes/api.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/assets.php';
-
-// Initialise on relevant hooks.
-add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_assets' );
-add_action( 'rest_api_init', __NAMESPACE__ . '\\register_api_routes' );
+// Initialize the plugin..
+( new \BoxUk\WpAiContentGeneration\Api( \OpenAI::client( $_ENV['OPENAI_API_KEY'] ?? '' ) ) )->init(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+( new \BoxUk\WpAiContentGeneration\Assets() )->init();
