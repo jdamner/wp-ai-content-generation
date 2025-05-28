@@ -1,5 +1,5 @@
 import { createBlock } from '@wordpress/blocks';
-import type { ComponentParser } from '../types';
+import type { ComponentParser } from './types';
 
 /**
  * Isolating this out since we might want to expand the way we
@@ -8,4 +8,11 @@ import type { ComponentParser } from '../types';
  * @param component
  */
 export const parse: ComponentParser = ( component ) =>
-	createBlock( component.name, component.attributes, [] );
+	createBlock(
+		component.name,
+		component.attributes.reduce(
+			( acc, { name, value } ) => ( { ...acc, [ name ]: value } ),
+			{}
+		),
+		component.innerBlocks?.map( parse )
+	);

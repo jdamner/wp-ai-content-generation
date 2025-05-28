@@ -1,39 +1,41 @@
-import type { Block, BlockInstance } from '@wordpress/blocks';
+import type { BlockInstance } from '@wordpress/blocks';
 
 interface AIRequest {
 	prompt: string;
-	components: Pick<
-		Block< any >,
-		| 'name'
-		| 'attributes'
-		| 'example'
-		| 'description'
-		| 'keywords'
-		| 'category'
-	>[];
 }
 
 type ComponentValue = {
 	name: string;
-	attributes?: {
-		readonly [ x: string ]: string | number | boolean | undefined;
-	};
+	attributes: Array< { name: string; value: any } >;
+	innerBlocks: Array< ComponentValue >;
 };
 
 type ValidAIResponse = {
-	error?: never;
-	message?: never;
+	status: 'complete';
 	components: Array< ComponentValue >;
 };
+
 type ErrorAIResponse = {
-	error: true;
+	status: 'error';
 	message: string;
-	components?: never;
 };
 
-export type AIResponse = ValidAIResponse | ErrorAIResponse;
+type PendingAIResponse = {
+	status:
+		| 'pending'
+		| 'content_analysis_pending'
+		| 'intent_analysis_pending'
+		| 'components_pending';
+};
 
+type BaseAiResponse = {
+	id?: string;
+};
+
+export type AIResponse = BaseAiResponse &
+	( ValidAIResponse | ErrorAIResponse | PendingAIResponse );
 export type AiHandler = ( request: AIRequest ) => Promise< AIResponse >;
+
 export type ComponentParser<
 	T extends Record< string, any > = { [ key: string ]: any },
 > = ( component: ComponentValue ) => BlockInstance< T >;
