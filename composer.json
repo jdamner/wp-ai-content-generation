@@ -1,0 +1,39 @@
+{
+	"name": "jdamner/wp-ai-content-generation",
+	"authors": [
+		{
+			"name": "James Amner",
+			"email": "jdamner@me.com"
+		}
+	],
+	"require": {
+		"openai-php/client": "^0.13.0",
+		"symfony/http-client": "^7.2",
+		"nyholm/psr7": "^1.8",
+		"vlucas/phpdotenv": "^5.6",
+		"woocommerce/action-scheduler": "^3.9"
+	},
+	"scripts": {
+		"phpcs": "phpcs",
+		"phpcs:fix": "phpcbf",
+		"phpstan": "phpstan analyse --memory-limit=2G"
+	},
+	"config": {
+		"allow-plugins": {
+			"php-http/discovery": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"phpstan/extension-installer": true
+		}
+	},
+	"require-dev": {
+		"php-stubs/wordpress-stubs": "^6.8",
+		"automattic/vipwpcs":"^3.0",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"phpstan/extension-installer": "^1.4"
+	},
+	"autoload": {
+		"psr-4": {
+			"WpAiContentGeneration\\": "includes/"
+		}
+	}
+}

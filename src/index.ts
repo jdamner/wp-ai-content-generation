@@ -1,7 +1,10 @@
 import domReady from '@wordpress/dom-ready';
+import { registerPlugin } from '@wordpress/plugins';
 
-import './index.scss';
-    
-domReady(() => {
-    console.log("Hello, world!");
-});
+import { Plugin } from './Plugin';
+
+domReady( () => {
+	registerPlugin( 'wp-ai-content-generation', {
+		render: Plugin,
+	} );
+} );

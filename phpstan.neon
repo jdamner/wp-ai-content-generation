@@ -1,0 +1,13 @@
+parameters:
+  level: 9
+  paths:
+    - includes
+  scanDirectories: 
+    - vendor/woocommerce/action-scheduler
+  excludePaths:
+    analyseAndScan:
+      - node_modules
+      - build
+  ignoreErrors: 
+    - identifier: missingType.generics
+    - identifier: missingType.iterableValue
