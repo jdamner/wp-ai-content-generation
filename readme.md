@@ -15,7 +15,18 @@ npm run start # Start the build/watcher
 
 This will get you a local WP environemnt and start the build watcher. To stop the environment run `npm run env stop`, or check out the docs for more things you can do to manage the build process or your environment. There's _lots_ of options in the docs, so worth checking out if you're unsure how to access things like logs or to connect xdebug. 
 
-You'll also need to setup your local `.env` file, baed on the `.env.dist` file. This file should include an OpenAI API key. This should not be committed to the repository. 
+## Configuration
+
+After setting up the development environment, you'll need to configure your OpenAI API key:
+
+1. Navigate to **Settings > Writing** in your WordPress admin dashboard
+2. Scroll down to the "AI Content Generation" section
+3. Enter your OpenAI API key in the provided field
+4. Click "Save Changes"
+
+You can get your OpenAI API key from the [OpenAI Platform](https://platform.openai.com/api-keys).
+
+**Note:** If you're upgrading from a previous version that used `.env` files, the plugin will display a migration notice in the admin area. Simply visit the Writing settings page and enter your API key to complete the migration. 
 
 ## Working with the Content Generator
 

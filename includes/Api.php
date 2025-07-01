@@ -76,7 +76,17 @@ class Api {
 	 * @return bool True if the user has permission, false otherwise.
 	 */
 	public function check_permissions(): bool {
-		return current_user_can( 'edit_posts' );
+		// Check if user can edit posts.
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return false;
+		}
+
+		// Check if API key is configured.
+		if ( ! \WpAiContentGeneration\Settings::is_api_key_configured() ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
