@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies (production only)
         run: |
           npm install --no-audit --no-fund --prefer-offline --progress=false
+          composer config platform-check false
           composer install --no-interaction --no-progress --no-suggest --optimize-autoloader --prefer-dist --no-dev
 
       - name: Run Build
