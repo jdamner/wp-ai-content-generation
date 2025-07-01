@@ -1,9 +1,8 @@
 name: Publish Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -23,7 +22,7 @@ jobs:
 
       - name: Install dependencies (production only)
         run: |
-          npm install --no-audit --no-fund --prefer-offline --progress=false --production
+          npm install --no-audit --no-fund --prefer-offline --progress=false
           composer install --no-interaction --no-progress --no-suggest --optimize-autoloader --prefer-dist --no-dev
 
       - name: Run Build
@@ -45,32 +44,49 @@ jobs:
           zip -r ../wp-ai-content-generation.zip .
           cd ..
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            ## Changes in ${{ github.ref_name }}
-            
-            This release includes the latest built assets and is ready for WordPress installation.
-            
-            ### Installation
-            1. Download the `wp-ai-content-generation.zip` file
-            2. Upload it to your WordPress site via Plugins > Add New > Upload Plugin
-            3. Activate the plugin
-          draft: false
-          prerelease: false
-
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./wp-ai-content-generation.zip
           asset_name: wp-ai-content-generation.zip
           asset_content_type: application/zip
+
+      - name: Update Release Description with Playground Link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const releaseId = context.payload.release.id;
+            const tagName = context.payload.release.tag_name;
+            const downloadUrl = `https://github.com/${{ github.repository }}/releases/download/${tagName}/wp-ai-content-generation.zip`;
+            
+            // Create the blueprint JSON for WordPress Playground
+            const blueprint = {
+              "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+              "login": true,
+              "plugins": [downloadUrl]
+            };
+            
+            // Encode the blueprint as base64 for the URL fragment
+            const blueprintJson = JSON.stringify(blueprint);
+            const blueprintEncoded = Buffer.from(blueprintJson).toString('base64');
+            const playgroundUrl = `https://playground.wordpress.net/#${blueprintEncoded}`;
+            
+            // Get the current release to preserve existing body content
+            const { data: release } = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId
+            });
+            
+            // Update the release description to include the playground link
+            const updatedBody = release.body + `[**Launch in WordPress Playground**](${playgroundUrl}).`;
+            
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              body: updatedBody
+            });
