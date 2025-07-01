@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,14 +47,10 @@ jobs:
           cd ..
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./wp-ai-content-generation.zip
-          asset_name: wp-ai-content-generation.zip
-          asset_content_type: application/zip
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} ./wp-ai-content-generation.zip --clobber
 
       - name: Update Release Description with Playground Link
         uses: actions/github-script@v7
@@ -81,8 +79,14 @@ jobs:
               release_id: releaseId
             });
             
+            // Create the playground section
+            const playgroundSection = "\n\n## 🚀 Try it in WordPress Playground\n\n" +
+              "Test this plugin instantly without any setup:\n\n" +
+              `[**Launch in WordPress Playground**](${playgroundUrl})\n\n` +
+              "This will automatically install and activate the plugin in a temporary WordPress site where you can test all features safely.";
+            
             // Update the release description to include the playground link
-            const updatedBody = release.body + `[**Launch in WordPress Playground**](${playgroundUrl}).`;
+            const updatedBody = release.body + playgroundSection;
             
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
