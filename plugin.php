@@ -16,24 +16,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// Fix for WordPress Playground compatibility - define missing constants.
+if ( ! defined( 'STDERR' ) ) {
+	define( 'STDERR', fopen( 'php://stderr', 'w' ) );
+}
+
 // Load Deps.
 require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
-
-try {
-	// Load environment variables.
-	$dotenv = \Dotenv\Dotenv::createImmutable( __DIR__ );
-	$dotenv->load();
-	$dotenv->required( 'OPENAI_API_KEY' )->notEmpty();
-
-} catch ( \Dotenv\Exception\ValidationException $e ) {
-	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- This is a valid use case for error_log.
-	error_log( 'Failed to load environment variables: ' . $e->getMessage() );
-	return;
-}
 
 // Load Action Scheduler.
 require_once plugin_dir_path( __FILE__ ) . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
 
-// Initialize the plugin..
-( new \WpAiContentGeneration\Api( \OpenAI::client( $_ENV['OPENAI_API_KEY'] ?? '' ) ) )->init(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+// Initialize the plugin settings.
+( new \WpAiContentGeneration\Settings() )->init();
+
+// Initialize the plugin assets.
 ( new \WpAiContentGeneration\Assets() )->init();
+
+// Initialize the API only if API key is configured.
+add_action(
+	'init',
+	function () {
+		if ( \WpAiContentGeneration\Settings::is_api_key_configured() ) {
+			$api_key = \WpAiContentGeneration\Settings::get_api_key();
+			( new \WpAiContentGeneration\Api( \OpenAI::client( $api_key ) ) )->init();
+		}
+	} 
+);
