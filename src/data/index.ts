@@ -1,9 +1,11 @@
 import type { AiHandler, AIResponse } from './types';
 import apiFetch from '@wordpress/api-fetch';
 
+const NAMESPACE = 'wp-ai-content-generation/v1';
+
 export const post: AiHandler = async ( request ) => {
 	const response = await apiFetch< AIResponse >( {
-		path: 'wp-ai-content-generation/v1/generate',
+		path: `${ NAMESPACE }/generate`,
 		method: 'POST',
 		data: request,
 	} );
@@ -12,8 +14,11 @@ export const post: AiHandler = async ( request ) => {
 
 export const get = async ( id: string ): Promise< AIResponse > => {
 	const response = await apiFetch< AIResponse >( {
-		path: `wp-ai-content-generation/v1/generate/${ id }`,
+		path: `${ NAMESPACE }/generate/${ id }`,
 		method: 'GET',
 	} );
 	return response;
 };
+
+export const triggerWorker = () =>
+	apiFetch( { path: `${ NAMESPACE }/trigger-worker` } );

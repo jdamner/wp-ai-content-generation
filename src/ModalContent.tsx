@@ -9,7 +9,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getBlockContent } from '@wordpress/blocks';
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { useDispatch } from '@wordpress/data';
-import { get, post } from './data';
+import { get, post, triggerWorker } from './data';
 import { parse } from './data/parser';
 import { AIResponse } from './data/types';
 
@@ -42,6 +42,7 @@ export const ModalContent: React.FC< { closeModal: () => void } > = ( {
 				} );
 			}
 		}
+		triggerWorker();
 		setIsLoading( false );
 	}, [ response ] );
 

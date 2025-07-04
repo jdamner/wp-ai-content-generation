@@ -21,6 +21,8 @@ class Api {
 	const ANALYSE_INTENT_HOOK    = 'wp-ai-content-generation-analyse-intent-hook';
 	const SELECT_COMPONENTS_HOOK = 'wp-ai-content-generation-select-components-hook';
 
+	const NAMESPACE = 'wp-ai-content-generation/v1';
+
 	/**
 	 * Constructor for the API class.
 	 * 
@@ -50,7 +52,7 @@ class Api {
 	 */
 	public function register_api_routes(): void {
 		register_rest_route(
-			'wp-ai-content-generation/v1',
+			self::NAMESPACE,
 			'/generate',
 			array(
 				'methods'             => 'POST',
@@ -60,12 +62,21 @@ class Api {
 		);
 
 		register_rest_route(
-			'wp-ai-content-generation/v1',
+			self::NAMESPACE,
 			'/generate/(?P<id>[A-z0-9]+)',
 			array(
 				'methods'             => 'GET',
 				'permission_callback' => array( $this, 'check_permissions' ),
 				'callback'            => array( $this, 'get_by_id' ),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/trigger-worker',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => array( $this, 'check_permissions' ),
+				'callback'            => array( $this, 'trigger_worker' ),
 			)
 		);
 	}
@@ -206,5 +217,24 @@ class Api {
 	public function select_components( string $id ): void {
 		$model = new Model( $id, $this->client );
 		$model->generate_components();
+	}
+
+	/**
+	 * Trigger the Action Scheduler worker to process pending actions.
+	 *
+	 * This method is used to manually trigger the Action Scheduler worker,
+	 * which processes scheduled actions in the queue.
+	 *
+	 * @return \WP_REST_Response The response indicating success or failure.
+	 */
+	public function trigger_worker(): \WP_REST_Response {
+		do_action( \ActionScheduler_QueueRunner::WP_CRON_HOOK );
+		return new \WP_REST_Response(
+			array(
+				'status'  => 'success',
+				'message' => 'Worker triggered successfully.',
+			),
+			200
+		);
 	}
 }

@@ -74,7 +74,7 @@ class Settings {
 	 * Render the API key input field.
 	 */
 	public function render_api_key_field(): void {
-				$api_key = $this->get_api_key();
+		$api_key = self::get_api_key();
 		?>
 		<input
 			type="password"
@@ -127,7 +127,8 @@ class Settings {
 	 * @return bool True if the API key appears to be valid, false otherwise.
 	 */
 	public static function is_api_key_configured(): bool {
-		return ! empty( self::get_api_key() );
+		$api_key = self::get_api_key();
+		return ! empty( $api_key ) && str_starts_with( $api_key, 'sk-' );
 	}
 
 	/**
@@ -138,10 +139,6 @@ class Settings {
 	 */
 	public static function sanitize_api_key( mixed $api_key ): string {
 		if ( ! is_string( $api_key ) ) {
-			return '';
-		}
-		
-		if ( ! str_starts_with( $api_key, 'sk-' ) ) {
 			return '';
 		}
 		return sanitize_text_field( $api_key );

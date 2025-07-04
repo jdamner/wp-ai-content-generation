@@ -1,97 +1,98 @@
 name: Publish Release
 
 on:
-  release:
-    types: [published]
+    release:
+        types: [published]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          coverage: pcov
-          tools: composer
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: pcov
+                  tools: composer
 
-      - name: Install dependencies (production only)
-        run: |
-          npm install --no-audit --no-fund --prefer-offline --progress=false
-          composer config platform-check false
-          composer install --no-interaction --no-progress --no-suggest --optimize-autoloader --prefer-dist --no-dev
+            - name: Install dependencies (production only)
+              run: |
+                  npm install --no-audit --no-fund --prefer-offline --progress=false
+                  composer config platform-check false
+                  composer install --no-interaction --no-progress --no-suggest --optimize-autoloader --prefer-dist --no-dev
 
-      - name: Run Build
-        run: npm run build
+            - name: Run Build
+              run: npm run build
 
-      - name: Create Release Archive
-        run: |
-          # Create a clean directory for the release
-          mkdir -p release-files
-          
-          # Copy necessary files for the WordPress plugin
-          cp -r build/ release-files/
-          cp -r includes/ release-files/
-          cp -r vendor/ release-files/
-          cp plugin.php release-files/
-          
-          # Create the release archive
-          cd release-files
-          zip -r ../wp-ai-content-generation.zip .
-          cd ..
+            - name: Create Release Archive
+              run: |
+                  # Create a clean directory for the release
+                  mkdir -p release-files
 
-      - name: Upload Release Asset
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.event.release.tag_name }} ./wp-ai-content-generation.zip --clobber
+                  # Copy necessary files for the WordPress plugin
+                  cp -r build/ release-files/
+                  cp -r includes/ release-files/
+                  cp -r vendor/ release-files/
+                  cp plugin.php release-files/
 
-      - name: Update Release Description with Playground Link
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const releaseId = context.payload.release.id;
-            const tagName = context.payload.release.tag_name;
-            const downloadUrl = `https://github.com/${{ github.repository }}/releases/download/${tagName}/wp-ai-content-generation.zip`;
-            
-            // Create the blueprint JSON for WordPress Playground
-            const blueprint = {
-              "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-              "login": true,
-              "plugins": [downloadUrl]
-            };
-            
-            // Encode the blueprint as base64 for the URL fragment
-            const blueprintJson = JSON.stringify(blueprint);
-            const blueprintEncoded = Buffer.from(blueprintJson).toString('base64');
-            const playgroundUrl = `https://playground.wordpress.net/#${blueprintEncoded}`;
-            
-            // Get the current release to preserve existing body content
-            const { data: release } = await github.rest.repos.getRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: releaseId
-            });
-            
-            // Create the playground section
-            const playgroundSection = "\n\n## 🚀 Try it in WordPress Playground\n\n" +
-              "Test this plugin instantly without any setup:\n\n" +
-              `[**Launch in WordPress Playground**](${playgroundUrl})\n\n` +
-              "This will automatically install and activate the plugin in a temporary WordPress site where you can test all features safely.";
-            
-            // Update the release description to include the playground link
-            const updatedBody = release.body + playgroundSection;
-            
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: releaseId,
-              body: updatedBody
-            });
+                  # Create the release archive
+                  cd release-files
+                  zip -r ../wp-ai-content-generation.zip .
+                  cd ..
+
+            - name: Upload Release Asset
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release upload ${{ github.event.release.tag_name }} ./wp-ai-content-generation.zip --clobber
+
+            - name: Update Release Description with Playground Link
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const releaseId = context.payload.release.id;
+                      const tagName = context.payload.release.tag_name;
+                      const downloadUrl = `https://github.com/${{ github.repository }}/releases/download/${tagName}/wp-ai-content-generation.zip`;
+
+                      // Create the blueprint JSON for WordPress Playground
+                      const blueprint = {
+                        "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+                        "login": true,
+                        "preferredVersions": { "php": "8.4" },
+                        "plugins": [downloadUrl]
+                      };
+
+                      // Encode the blueprint as base64 for the URL fragment
+                      const blueprintJson = JSON.stringify(blueprint);
+                      const blueprintEncoded = Buffer.from(blueprintJson).toString('base64');
+                      const playgroundUrl = `https://playground.wordpress.net/#${blueprintEncoded}`;
+
+                      // Get the current release to preserve existing body content
+                      const { data: release } = await github.rest.repos.getRelease({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        release_id: releaseId
+                      });
+
+                      // Create the playground section
+                      const playgroundSection = "\n\n## 🚀 Try it in WordPress Playground\n\n" +
+                        "Test this plugin instantly without any setup:\n\n" +
+                        `[**Launch in WordPress Playground**](${playgroundUrl})\n\n` +
+                        "This will automatically install and activate the plugin in a temporary WordPress site where you can test all features safely.";
+
+                      // Update the release description to include the playground link
+                      const updatedBody = release.body + playgroundSection;
+
+                      await github.rest.repos.updateRelease({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        release_id: releaseId,
+                        body: updatedBody
+                      });
