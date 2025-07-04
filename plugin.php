@@ -38,10 +38,12 @@ add_action(
 	'init',
 	function () {
 		if ( \WpAiContentGeneration\Settings::is_api_key_configured() ) {
-			( new \WpAiContentGeneration\Api( \OpenAI::factory()
+			( new \WpAiContentGeneration\Api(
+				\OpenAI::factory()
 				->withApiKey( \WpAiContentGeneration\Settings::get_api_key() )
-				->withHttpClient(  new \WpAiContentGeneration\WordPressHttpClient() )
-				->make() ) )->init();
+				->withHttpClient( new \WpAiContentGeneration\WordPressHttpClient() )
+				->make() 
+			) )->init();
 		}
 	} 
 );

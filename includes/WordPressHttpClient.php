@@ -44,7 +44,6 @@ class WordPressHttpClient implements ClientInterface {
 			'method'      => $method,
 			'headers'     => $headers,
 			'body'        => $body,
-			'timeout'     => 10, // Set lower timeout for playground.
 			'redirection' => 5,
 			'httpversion' => '1.1',
 			'user-agent'  => 'wp-ai-content-generation/1.0',
