@@ -54,7 +54,7 @@ jobs:
                   gh release upload ${{ github.event.release.tag_name }} ./wp-ai-content-generation.zip --clobber
 
             - name: Update Release Description with Playground Link
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   script: |
                       const releaseId = context.payload.release.id;
